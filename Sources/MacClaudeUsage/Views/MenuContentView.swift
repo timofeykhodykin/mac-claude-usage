@@ -194,12 +194,14 @@ struct UsageBar: View {
         .animation(.easeOut(duration: 0.3), value: fraction)
     }
 
-    /// Pastel green → yellow → peach → rose, evenly spaced over 0…100%.
+    /// Pastel green → yellow → peach → rose, evenly spaced over 0…100%. Picked in OKLCH at
+    /// a similar lightness (0.80–0.88) and low chroma (≤ 0.09), so no end of the scale looks
+    /// louder than the others; lightness drops a little towards rose to carry the urgency.
     static let pastelStops: [(r: Double, g: Double, b: Double)] = [
-        (0.55, 0.82, 0.62),
-        (0.95, 0.84, 0.47),
-        (0.96, 0.66, 0.47),
-        (0.91, 0.46, 0.47)
+        (0.69, 0.89, 0.74),
+        (0.91, 0.85, 0.59),
+        (0.96, 0.74, 0.58),
+        (0.95, 0.65, 0.65)
     ]
 
     /// The solid bar color for `fraction`: the point on the pastel scale at that usage.

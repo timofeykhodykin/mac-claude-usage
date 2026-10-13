@@ -3,6 +3,10 @@ import SwiftUI
 struct MacClaudeUsageApp: App {
     @StateObject private var store = UsageStore()
 
+    init() {
+        MenuBarClickFix.install()
+    }
+
     var body: some Scene {
         MenuBarExtra {
             MenuContentView(store: store)

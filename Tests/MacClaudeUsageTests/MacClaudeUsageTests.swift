@@ -228,6 +228,16 @@ import Testing
                 == #""/Apps/Claude Usage.app/Contents/MacOS/MacClaudeUsage" --statusline"#)
     }
 
+    @Test func pressThatClosedTheDropdownIsDropped() {
+        // Times from a real click at the top edge of the screen: the dropdown closed 6 ms after the press.
+        #expect(MenuBarClickFix.closedWithPress(pressAt: 947648.102, closedAt: 947648.108, dropdownVisible: false))
+        // Closed a second before: this press is meant to open it again.
+        #expect(!MenuBarClickFix.closedWithPress(pressAt: 947646.994, closedAt: 947645.772, dropdownVisible: false))
+        // Still open: SwiftUI's own toggle closes it.
+        #expect(!MenuBarClickFix.closedWithPress(pressAt: 10, closedAt: 10, dropdownVisible: true))
+        #expect(!MenuBarClickFix.closedWithPress(pressAt: 10, closedAt: -.infinity, dropdownVisible: false))
+    }
+
     @Test func menuBarText() {
         let now = Date()
         let snapshot = UsageSnapshot(session: UsageWindow(utilization: 12.6, resetsAt: now.addingTimeInterval(3600)),

@@ -9,6 +9,10 @@ into the new version's section, and the release on GitHub uses it as release not
 
 ## Unreleased
 
+- Clicking the menu bar item closes the open dropdown even when the pointer is pushed against
+  the top of the screen; before, the dropdown hid while the button was held and came back.
+- Softer, fully pastel progress bar colors at every level.
+
 ## 1.1.0 - 2026-10-13
 
 - New usage chart in the dropdown for the current session or week: your usage over time, the
