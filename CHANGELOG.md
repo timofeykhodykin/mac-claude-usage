@@ -9,6 +9,8 @@ into the new version's section, and the release on GitHub uses it as release not
 
 ## Unreleased
 
+## 1.1.0 - 2026-10-13
+
 - New usage chart in the dropdown for the current session or week: your usage over time, the
   pace of each stretch of use, where the current pace leads by the session reset, and an
   even-pace line for the week. Hover for values. On by default; Settings → Dropdown turns it off.
