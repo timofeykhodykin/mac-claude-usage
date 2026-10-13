@@ -60,4 +60,6 @@ enum SettingsKey {
     static let cachedSnapshot = "cachedSnapshot"
     static let liveStatusLine = "liveStatusLine"
     static let showWeekly = "showWeeklyInMenuBar"
+    static let showChart = "showUsageChart"
+    static let chartMetric = "usageChartMetric"
 }

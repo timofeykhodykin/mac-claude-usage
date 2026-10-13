@@ -9,6 +9,20 @@ into the new version's section, and the release on GitHub uses it as release not
 
 ## Unreleased
 
+- New usage chart in the dropdown for the current session or week: your usage over time, the
+  pace of each stretch of use, where the current pace leads by the session reset, and an
+  even-pace line for the week. Hover for values. On by default; Settings → Dropdown turns it off.
+- The dropdown estimates how many full 5-hour sessions are left in the weekly limit, learned
+  from your own usage history, with a margin of error: `≈ 3.4 ± 0.2 of 7.5 ± 0.3 full
+  sessions left`. Recent sessions count most, and data from before a change in the limits
+  is ignored. It gets precise quickly by timing when the weekly percentage ticks over.
+- Settings toggles and the chart's Session / Week switch use Claude's terracotta instead of
+  the system blue.
+- The refresh icon spins around its own center.
+- Registering the status line keeps `~/.claude/settings.json`'s file permissions, so a
+  private settings file stays private.
+- The status-line command escapes the app's path for the shell.
+
 ## 1.0.0 - 2026-10-12
 
 Initial release.

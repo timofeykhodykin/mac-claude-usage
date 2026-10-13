@@ -7,6 +7,7 @@ struct SettingsView: View {
     @AppStorage(SettingsKey.refreshInterval) private var interval: Int = RefreshInterval.twoMinutes.rawValue
     @AppStorage(SettingsKey.liveStatusLine) private var liveStatusLine = true
     @AppStorage(SettingsKey.showWeekly) private var showWeekly = false
+    @AppStorage(SettingsKey.showChart) private var showChart = true
     @State private var statusLineState = StatusLineInstaller.state()
     @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
     @State private var launchError: String?
@@ -30,9 +31,9 @@ struct SettingsView: View {
                             }
                             .frame(width: 40, height: 32)
                             .background(RoundedRectangle(cornerRadius: 6)
-                                .fill(icon == option ? Color.accentColor.opacity(0.25) : Color.primary.opacity(0.05)))
+                                .fill(icon == option ? Color.claude.opacity(0.25) : Color.primary.opacity(0.05)))
                             .overlay(RoundedRectangle(cornerRadius: 6)
-                                .stroke(icon == option ? Color.accentColor : .clear, lineWidth: 1.5))
+                                .stroke(icon == option ? Color.claude : .clear, lineWidth: 1.5))
                             .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
@@ -42,9 +43,19 @@ struct SettingsView: View {
                 .padding(.vertical, 4)
 
                 Toggle("Show weekly usage", isOn: $showWeekly)
+                    .tint(.claude)
                 Text("Session / weekly, e.g. 13% / 5%.")
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+
+            Section("Dropdown") {
+                Toggle("Show usage chart", isOn: $showChart)
+                    .tint(.claude)
+                Text("Session and weekly usage over time, with the pace of each stretch of use.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Section("Updates") {
@@ -56,6 +67,7 @@ struct SettingsView: View {
                 .onChange(of: interval) { store.restartPolling() }
 
                 Toggle("Live updates from Claude Code", isOn: $liveStatusLine)
+                    .tint(.claude)
                     .onChange(of: liveStatusLine) { _, enabled in setLiveStatusLine(enabled) }
                 Text(statusLineNote)
                     .font(.caption)
@@ -63,6 +75,7 @@ struct SettingsView: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 Toggle("Launch at login", isOn: $launchAtLogin)
+                    .tint(.claude)
                     .onChange(of: launchAtLogin) { _, enabled in setLaunchAtLogin(enabled) }
                 if let launchError {
                     Text(launchError).font(.caption).foregroundStyle(.red)

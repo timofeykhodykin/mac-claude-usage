@@ -18,6 +18,8 @@ final class UsageStore: ObservableObject {
     /// True when we have no data, or the last attempt failed and the data has gone stale.
     /// The menu bar then shows `?`; the dropdown keeps showing the last numbers.
     @Published private(set) var isUnavailable = false
+    /// Every change of either percentage (plus heartbeats), for the chart and the sessions estimate.
+    @Published private(set) var history: [UsagePoint] = []
 
     private let api: UsageAPI
     private let tokens: TokenManager
@@ -38,6 +40,7 @@ final class UsageStore: ObservableObject {
         if let data = defaults.data(forKey: SettingsKey.cachedSnapshot) {
             snapshot = try? JSONDecoder().decode(UsageSnapshot.self, from: data)
         }
+        history = UsageHistory.load()
         if defaults.object(forKey: SettingsKey.liveStatusLine) as? Bool ?? true {
             // Also repoints the command if the app was moved.
             _ = try? StatusLineInstaller.install()
@@ -50,12 +53,13 @@ final class UsageStore: ObservableObject {
     }
 
     /// A static store for previews and screenshots: no polling, no Keychain, no settings changes.
-    init(previewSnapshot: UsageSnapshot, plan: String?) {
+    init(previewSnapshot: UsageSnapshot, plan: String?, history: [UsagePoint] = []) {
         self.tokens = TokenManager()
         self.api = UsageAPI(tokens: tokens)
         self.defaults = UserDefaults(suiteName: "dev.mac-claude-usage.preview") ?? .standard
         self.snapshot = previewSnapshot
         self.plan = plan
+        self.history = history
     }
 
     /// Recomputes `isUnavailable`. Staleness depends on the clock, so this also runs on a timer.
@@ -192,6 +196,30 @@ final class UsageStore: ObservableObject {
         if let data = try? JSONEncoder().encode(merged) {
             defaults.set(data, forKey: SettingsKey.cachedSnapshot)
         }
+        record(merged)
+    }
+
+    /// Appends to the usage history when something changed (or as a heartbeat).
+    private func record(_ snapshot: UsageSnapshot) {
+        let point = UsagePoint(snapshot)
+        if let last = history.last, last.date > point.date.addingTimeInterval(3600) {
+            // The clock jumped back: entries "from the future" would block recording.
+            history = UsageHistory.pruned(history, now: point.date)
+            UsageHistory.rewrite(history)
+        }
+        guard UsageHistory.shouldRecord(point, after: history.last) else { return }
+        history.append(point)
+        UsageHistory.append(point)
+        // The app can run for weeks; drop old entries a day's worth at a time.
+        if let first = history.first, point.date.timeIntervalSince(first.date) > UsageHistory.retention + 86400 {
+            history = UsageHistory.pruned(history, now: point.date)
+            UsageHistory.rewrite(history)
+        }
+    }
+
+    /// Full 5-hour sessions per weekly limit and how many are left, once there's enough history.
+    var sessionsEstimate: SessionsEstimate? {
+        UsageHistory.sessionsEstimate(history, currentWeekly: snapshot?.weekly?.currentUtilization())
     }
 
     /// After sleep the token has often expired and the data is stale; refresh right away

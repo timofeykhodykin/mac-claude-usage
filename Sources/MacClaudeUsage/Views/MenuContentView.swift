@@ -27,6 +27,7 @@ struct MenuBarLabel: View {
 struct MenuContentView: View {
     @ObservedObject var store: UsageStore
     @Environment(\.openWindow) private var openWindow
+    @AppStorage(SettingsKey.showChart) private var showChart = true
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -41,7 +42,13 @@ struct MenuContentView: View {
             }
 
             UsageRow(title: "Session (5h)", window: store.snapshot?.session, style: .relative)
-            UsageRow(title: "Weekly", window: store.snapshot?.weekly, style: .absolute)
+            UsageRow(title: "Weekly", window: store.snapshot?.weekly, style: .absolute,
+                     note: store.snapshot?.weekly == nil ? nil : SessionsLabel.text(store.sessionsEstimate),
+                     noteHelp: SessionsLabel.help(store.sessionsEstimate))
+
+            if showChart {
+                UsageChartSection(store: store)
+            }
 
             if let until = store.backoffUntil, until > Date(), !store.isDataFresh {
                 Label("Rate limited — next automatic try at \(until.formatted(date: .omitted, time: .shortened)). Showing last data.",
@@ -65,12 +72,10 @@ struct MenuContentView: View {
                 Button {
                     store.refreshNow()
                 } label: {
+                    // The symbol's own rotation effect turns it around the circle of the arrow,
+                    // not around the center of its bounding box.
                     Image(systemName: "arrow.clockwise")
-                        .rotationEffect(.degrees(store.isRefreshing ? 360 : 0))
-                        .animation(store.isRefreshing
-                                   ? .linear(duration: 0.8).repeatForever(autoreverses: false)
-                                   : .default,
-                                   value: store.isRefreshing)
+                        .symbolEffect(.rotate, options: .repeat(.continuous), isActive: store.isRefreshing)
                 }
                 .buttonStyle(.borderless)
                 .disabled(store.isRefreshing)
@@ -97,6 +102,8 @@ struct UsageRow: View {
     let title: String
     let window: UsageWindow?
     let style: ResetStyle
+    var note: String? = nil
+    var noteHelp: String? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
@@ -111,6 +118,12 @@ struct UsageRow: View {
                 Text(resetText(now: context.date))
                     .font(.caption)
                     .foregroundStyle(.secondary)
+            }
+            if let note {
+                Text(note)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .help(noteHelp ?? "")
             }
         }
     }

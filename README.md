@@ -29,6 +29,13 @@
 
 - **Session usage in the menu bar**, like `37%`, or session and weekly together: `37% / 64%`.
 - **Both limits one click away**, with progress bars and reset times.
+- **Sessions left this week.** It learns how much of the weekly limit a full 5-hour session
+  uses and shows how many full sessions are left, with a margin of error:
+  `≈ 3.4 ± 0.2 of 7.5 ± 0.3 full sessions left`. Recent use counts most, and it notices when
+  the limits change.
+- **Usage over time.** A chart of the current session or week, with the pace of each stretch
+  of use, where the current pace leads by the reset, and an even-pace line for the week.
+  Can be turned off in Settings.
 - **Never goes stale.** It renews Claude Code's sign-in in step with Claude Code, so it
   keeps working even if you haven't opened Claude Code for days.
 - **Gentle on rate limits.** It reuses the numbers Claude Code already gets, and calls the
@@ -119,14 +126,25 @@ As a status line it prints the usual `Opus 5.5 · 11% · 113K/1M` context readou
 takes the status line if it's free, and never overwrites another tool's. On `HTTP 429` it
 backs off exponentially, up to 30 minutes.
 
+Every change of either percentage goes into a local history. The sessions estimate compares
+how much the weekly and the 5-hour percentages grew between consecutive readings in the same
+windows: if 60% of a session cost 8% of the week, a full session costs about 13% and the
+week holds about 7.5. A session from a week ago counts half as much as today's, and if the
+cost clearly differs before and after some point (the limits changed), older data is set
+aside. Percentages come rounded to whole numbers, so it also times the moments the weekly
+percentage ticks over: between two ticks the week grew by an exact number of points, which
+pins the estimate down after a couple of ticks. The ± is a ~95% range from the spread
+between sessions and that rounding; while it's wide, the dropdown shows a range, or waits.
+
 </details>
 
 ## Privacy
 
 - Talks only to `api.anthropic.com` and `platform.claude.com`, the same hosts Claude Code uses.
 - Tokens stay in Claude Code's Keychain item: never logged, cached, or sent anywhere else.
-- Writes only its preferences, one usage snapshot in `~/Library/Application Support/MacClaudeUsage/`,
-  and the `statusLine` entry in `~/.claude/settings.json` (backed up first).
+- Writes only its preferences, one usage snapshot and a usage history (percentages and reset
+  times, kept 5 weeks) in `~/Library/Application Support/MacClaudeUsage/`, and the
+  `statusLine` entry in `~/.claude/settings.json` (backed up first).
 
 <details>
 <summary><b>Troubleshooting</b></summary>

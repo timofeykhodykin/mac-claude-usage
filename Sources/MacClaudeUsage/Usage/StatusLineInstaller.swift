@@ -21,7 +21,17 @@ enum StatusLineInstaller {
     }
 
     static var ourCommand: String? {
-        Bundle.main.executablePath.map { "\"\($0)\" --statusline" }
+        Bundle.main.executablePath.map(command(forExecutable:))
+    }
+
+    /// Claude Code runs the status line through a shell. Inside double quotes the shell still
+    /// expands `$`, backticks and `\`, so those (and `"`) are escaped: an app path can't run code.
+    static func command(forExecutable path: String) -> String {
+        let escaped = path.reduce(into: "") { result, character in
+            if "\"\\$`".contains(character) { result.append("\\") }
+            result.append(character)
+        }
+        return "\"\(escaped)\" --statusline"
     }
 
     static func state() -> State {
@@ -86,6 +96,10 @@ enum StatusLineInstaller {
         try fm.createDirectory(at: settingsURL.deletingLastPathComponent(), withIntermediateDirectories: true)
         let data = try JSONSerialization.data(withJSONObject: root,
                                               options: [.prettyPrinted, .sortedKeys, .withoutEscapingSlashes])
+        // An atomic write replaces the file with a new one at default permissions; settings.json
+        // can hold API keys in `env`, so keep it as private as it was.
+        let mode = (try? fm.attributesOfItem(atPath: settingsURL.path))?[.posixPermissions]
         try data.write(to: settingsURL, options: .atomic)
+        if let mode { try? fm.setAttributes([.posixPermissions: mode], ofItemAtPath: settingsURL.path) }
     }
 }
